@@ -19,7 +19,7 @@
     ansible.builtin.user:
       become: yes
       name: roboshop
-      
+
   - name: directory exixts or not 
     ansible.builtin.stat:
       path: /app
@@ -68,7 +68,7 @@
   - name: load catalogue schema
     ansible.builtin.command: mongo --host mongodb.munidevops.shop </app/schema/catalogue.js
 
-  - name: restart catologue service
+  - name: restart catologue sservices
     ansible.builtin.service:
       name: catalogue
       state: restarted 
