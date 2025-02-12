@@ -4,6 +4,7 @@
   tasks: 
   - name: tp run vendor provided script/ setup npm source
     ansible.builtin.shell: curl -sL https://rpm.nodesource.com/setup_lts.x | bash
+
   - name:
     ansible.builtin.yum:
       name: nodejs
@@ -18,10 +19,12 @@
     ansible.builtin.user:
       become: yes
       name: roboshop
+      
   - name: directory exixts or not 
     ansible.builtin.stat:
       path: /app
       register: directory
+
   - name: print statistics of directory
     ansible.builtin.debug:
       msg: "output: {{directory}}"
@@ -33,8 +36,8 @@
       state: directory
   - name: Download vendr created zip filein app directory
     ansible.builtin.get_url:
-    url: http://example.com/path/file.conf
-    dest: /tmp
+      url: http://example.com/path/file.conf
+      dest: /tmp
   - name: extract catologue to app folder
     ansible.builtin.unarchive:
       src: /tmp.catalogue.zip
@@ -62,9 +65,11 @@
     ansible.builtin.yum:
       name: mongodb-org-shell
       state: installed
-  - name: load mogodb schema
+  - name: load catalogue schema
     ansible.builtin.command: mongo --host mongodb.munidevops.shop </app/schema/catalogue.js
+
   - name: restart catologue service
     ansible.builtin.service:
       name: catalogue
       state: restarted 
+      enabled: true
