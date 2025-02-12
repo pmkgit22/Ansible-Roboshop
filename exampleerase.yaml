@@ -1,0 +1,21 @@
+- name: Install Catalogue component
+  hosts: catalogue
+  become: yes
+  tasks:
+    - name: Run vendor provided script to setup npm source
+      ansible.builtin.shell: "curl -sL https://rpm.nodesource.com/setup_lts.x | bash"
+
+    - name: Install nodejs
+      ansible.builtin.yum:
+        name: nodejs
+        state: installed
+
+    - name: Check if user roboshop exists
+      ansible.builtin.command: id roboshop
+      register: user_check
+      ignore_errors: true
+
+    - name: Create user roboshop if not exists
+      ansible.builtin.user:
+        name: roboshop
+      when: user_check.rc != 0
