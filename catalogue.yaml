@@ -3,19 +3,19 @@
   become: yes
   tasks: 
   - name: tp run vendor provided script/ setup npm source
-    ansible.builtin.shell: curl -sL https://rpm.nodesource.com/setup_lts.x | bash
+    ansible.builtin.shell: "curl -sL https://rpm.nodesource.com/setup_lts.x | bash"
 
   - name:
     ansible.builtin.yum:
       name: nodejs
       state: installed
-  - name: Check if user 'roboshop' exists
+  - name: Check if user roboshop exists
     ansible.builtin.command: id roboshop
     register: user_check  #printing output to variable
     ignore_errors: true  # Prevent failure if the user does not exist
   
   - when: user_check.rc != 0 
-    name: Create user 'roboshop' if not exists
+    name: Create user roboshop if not exists
     ansible.builtin.user:
       become: yes
       name: roboshop
@@ -36,7 +36,7 @@
       state: directory
   - name: Download vendr created zip filein app directory
     ansible.builtin.get_url:
-      url: http://example.com/path/file.conf
+      url: https://roboshop-builds.s3.amazonaws.com/catalogue.zip
       dest: /tmp
   - name: extract catologue to app folder
     ansible.builtin.unarchive:
