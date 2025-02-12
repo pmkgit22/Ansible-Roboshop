@@ -4,6 +4,7 @@
   tasks:
     - name: Run vendor provided script to setup npm source
       ansible.builtin.shell: "curl -sL https://rpm.nodesource.com/setup_lts.x | bash"
+      # This command sets up the NodeSource repository for Node.js
 
     - name: Install nodejs
       ansible.builtin.yum:
@@ -13,9 +14,9 @@
     - name: Check if user roboshop exists
       ansible.builtin.command: id roboshop
       register: user_check
-      ignore_errors: true
+      failed_when: false  # Do not mark this task as failed if the user doesn't exist
 
     - name: Create user roboshop if not exists
       ansible.builtin.user:
         name: roboshop
-      when: user_check.rc != 0
+      when: user_check.rc != 0  # Create the user only if the 'id roboshop' command returned a non-zero value
