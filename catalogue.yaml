@@ -9,6 +9,7 @@
     ansible.builtin.yum:
       name: nodejs
       state: installed
+
   - name: Check if user roboshop exists
     ansible.builtin.command: id roboshop
     register: user_check  #printing output to variable
@@ -23,7 +24,7 @@
   - name: directory exixts or not 
     ansible.builtin.stat:
       path: /app
-      register: directory
+    register: directory
 
   - name: print statistics of directory
     ansible.builtin.debug:
@@ -34,28 +35,34 @@
     ansible.builtin.file:
       path: /app
       state: directory
+
   - name: Download vendr created zip filein app directory
     ansible.builtin.get_url:
       url: https://roboshop-builds.s3.amazonaws.com/catalogue.zip
       dest: /tmp
+
   - name: extract catologue to app folder
     ansible.builtin.unarchive:
       src: /tmp.catalogue.zip
       dest: /app
       remote_src: yes
+
   - name: install dependencies
     ansible.builtin.command: npm install 
     args:
       chdir: /app
+
   - name:  copy catalogue serviece to /etc/systemd/system/
     ansible.builtin.copy:
       src: catalogue.service
       dest: /etc/systemd/system/catalogue.service
+
   - name: system deamon reload
     ansible.builtin.systemd_service:
       state: restarted
       daemon_reload: true
       #name: catalogue.service
+
   - name:  copy mongodb.repo to yum.repos.d
     ansible.builtin.copy:
       src: mongodb.repo
@@ -65,6 +72,7 @@
     ansible.builtin.yum:
       name: mongodb-org-shell
       state: installed
+
   - name: load catalogue schema
     ansible.builtin.command: mongo --host mongodb.munidevops.shop </app/schema/catalogue.js
 
