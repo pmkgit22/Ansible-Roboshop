@@ -62,7 +62,7 @@
     ansible.builtin.systemd_service:
       state: restarted
       daemon_reload: true
-      #name: catalogue.service
+      name: catalogue
 
   - name:  copy of mongodb.repo to yum.repos.d
     ansible.builtin.copy:
