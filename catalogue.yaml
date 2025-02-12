@@ -75,10 +75,17 @@
       state: installed
 
   - name: load catalogue schema
-    ansible.builtin.command: mongo --host mongodb.munidevops.shop < /app/schema/catalogue.js
+    # ansible.builtin.command: mongo --host mongodb.munidevops.shop < /app/schema/catalogue.js
+    # ansible.builtin.shell: "cat /app/schema/catalogue.js | mongo --host mongodb.munidevops.shop"
+    #   args:
+    #     executable: /bin/bash
+      
+    ansible.builtin.shell: "mongo --host mongodb.munidevops.shop < /app/schema/catalogue.js"
+    args:
+      executable: /bin/bash
 
   - name: restart catologue sservices
     ansible.builtin.service:
       name: catalogue
       state: restarted 
-      enabled: true
+      enabled: yes
