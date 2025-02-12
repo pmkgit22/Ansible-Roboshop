@@ -1,0 +1,70 @@
+- name: install Catalogue component
+  hosts: catalogue
+  become: yes
+  tasks: 
+  - name: tp run vendor provided script/ setup npm source
+    ansible.builtin.shell: curl -sL https://rpm.nodesource.com/setup_lts.x | bash
+  - name:
+    ansible.builtin.yum:
+      name: nodejs
+      state: installed
+  - name: Check if user 'roboshop' exists
+    ansible.builtin.command: id roboshop
+    register: user_check  #printing output to variable
+    ignore_errors: true  # Prevent failure if the user does not exist
+  
+  - when: user_check.rc != 0 
+    name: Create user 'roboshop' if not exists
+    ansible.builtin.user:
+      become: yes
+      name: roboshop
+  - name: directory exixts or not 
+    ansible.builtin.stat:
+      path: /app
+      register: directory
+  - name: print statistics of directory
+    ansible.builtin.debug:
+      msg: "output: {{directory}}"
+  
+  - when: directory.stat.exists == False
+    name: creating directory
+    ansible.builtin.file:
+      path: /app
+      state: directory
+  - name: Download vendr created zip filein app directory
+    ansible.builtin.get_url:
+    url: http://example.com/path/file.conf
+    dest: /tmp
+  - name: extract catologue to app folder
+    ansible.builtin.unarchive:
+      src: /tmp.catalogue.zip
+      dest: /app
+      remote_src: yes
+  - name: install dependencies
+    ansible.builtin.command: npm install 
+    args:
+      chdir: /app
+  - name:  copy catalogue serviece to /etc/systemd/system/
+    ansible.builtin.copy:
+      src: catalogue.service
+      dest: /etc/systemd/system/catalogue.service
+  - name: system deamon reload
+    ansible.builtin.systemd_service:
+      state: restarted
+      daemon_reload: true
+      #name: catalogue.service
+  - name:  copy mongodb.repo to yum.repos.d
+    ansible.builtin.copy:
+      src: mongodb.repo
+      dest: /etc/yum.repos.d/mongo.repo
+  
+  - name: install mongo db client
+    ansible.builtin.yum:
+      name: mongodb-org-shell
+      state: installed
+  - name: load mogodb schema
+    ansible.builtin.command: mongo --host mongodb.munidevops.shop </app/schema/catalogue.js
+  - name: restart catologue service
+    ansible.builtin.service:
+      name: catalogue
+      state: restarted 
