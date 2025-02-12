@@ -1,0 +1,8 @@
+[mongodb]
+mongodb.munidevops.shop
+
+[catalogue]
+catalogue.munidevops.shop
+
+[web]
+web.munidevops.shop
