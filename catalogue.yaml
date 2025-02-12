@@ -73,10 +73,20 @@
     ansible.builtin.yum:
       name: mongodb-org-shell
       state: installed
+      
+    - name: Replace old hostname with new hostname
+    ansible.builtin.replace:
+      path: /etc/mongod.conf
+      regexp: '127.0.0.1'
+      replace: '0.0.0.0'
+  - name: mongodb enable and restart
+    ansible.builtin.service:
+      name: mongod
+      state: restarted
 
   - name: load catalogue schema
     ansible.builtin.command: mongo --host mongodb.munidevops.shop < /app/schema/catalogue.js
-           
+
   - name: restart catologue sservices
     ansible.builtin.service:
       name: catalogue
