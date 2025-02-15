@@ -74,7 +74,7 @@
       name: mongodb-org-shell
       state: installed
   
-  - name: load catalogue schema
+  - name: load cataalogue schema
     ansible.builtin.command: mongo --host mongodb.munidevops.shop < /app/schema/catalogue.js
 
   - name: restart catologue services
