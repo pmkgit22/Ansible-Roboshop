@@ -75,7 +75,7 @@
       state: installed
   
   - name: load catalogue schema
-    ansible.builtin.command: mongo --host mongodb.munidevops.shop < /app/schema/catalogue.js
+    ansible.builtin.command: mongo --host mongodb.munidevops.shop /app/schema/catalogue.js
 
   - name: restart catologue services
     ansible.builtin.service:
