@@ -76,6 +76,9 @@
       name: mongodb-org-shell
       state: installed
   
+  - name: Remove existing products from catalogue
+    ansible.builtin.shell: mongo --host mongodb.munidevops.shop --eval "db.products.remove({})"
+   
   - name: load cataalogue schema
     ansible.builtin.command: mongo --host mongodb.munidevops.shop < /app/schema/catalogue.js
 
