@@ -5,7 +5,7 @@
   - name: tp run vendor provided script/ setup npm source
     ansible.builtin.shell: "curl -sL https://rpm.nodesource.com/setup_lts.x | bash"
 
-  - name:
+  - name: install nodejs
     ansible.builtin.yum:
       name: nodejs
       state: installed
@@ -13,13 +13,15 @@
   - name: Check if user roboshop exists
     ansible.builtin.command: id roboshop
     register: user_check  #printing output to variable
-    ignore_errors: true  # Prevent failure if the user does not exist
+    ignore_errors: yes  # Prevent failure if the user does not exist
     # failed_when: false  # Do not mark this task as failed if the user doesn't exist
   
   - name: Create user roboshop if not exists
     ansible.builtin.user:
-      become: yes
+      #become: yes
       name: roboshop
+      state: present
+      create_home: yes
     when: user_check.rc != 0 
 
   - name: directory exixts or not 
