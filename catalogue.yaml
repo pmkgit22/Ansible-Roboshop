@@ -14,7 +14,7 @@
     ansible.builtin.command: id roboshop
     register: user_check  #printing output to variable
     ignore_errors: true  # Prevent failure if the user does not exist
-    failed_when: false  # Do not mark this task as failed if the user doesn't exist
+    # failed_when: false  # Do not mark this task as failed if the user doesn't exist
   
   - name: Create user roboshop if not exists
     ansible.builtin.user:
