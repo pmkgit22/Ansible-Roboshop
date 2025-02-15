@@ -64,7 +64,7 @@
       daemon_reload: true
       # name: catalogue
 
-  - name:  copy of mongodb.repo to yum.repos.d
+  - name:  copy of mongodb.repo  to yum.repos.d
     ansible.builtin.copy:
       src: mongodb.repo
       dest: /etc/yum.repos.d/mongo.repo
