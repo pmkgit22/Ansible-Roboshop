@@ -6,3 +6,24 @@ catalogue.munidevops.shop
 
 [web]
 web.munidevops.shop
+
+[redis]
+redis.munidevops.shop
+
+[user]
+user.munidevops.shop
+
+[cart]
+cart.munidevops.shop
+
+[mysql]
+mysql.munidevops.shop
+
+[shipping]
+shipping.munidevops.shop
+
+[rabbitmq]
+rabbitmq.munidevops.shop
+
+[payment]
+payment.munidevops.shop
