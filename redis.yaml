@@ -50,14 +50,25 @@
             name: redis
             state: present
 
+    - name: Find Redis Configuration File
+      ansible.builtin.find:
+        paths:
+          - /etc/redis
+          - /etc
+        patterns: "redis.conf"
+        use_regex: false
+      register: redis_conf_file
+
+    - name: Debug Found Redis Config File
+      ansible.builtin.debug:
+        msg: "Redis config file found at: {{ redis_conf_file.files[0].path if redis_conf_file.matched > 0 else 'NOT FOUND' }}"
+
     - name: Allow remote connections to Redis
       ansible.builtin.replace:
-        path: "{{ item }}"
+        path: "{{ redis_conf_file.files[0].path }}"
         regexp: '^bind 127\.0\.0\.1'
         replace: 'bind 0.0.0.0'
-      with_first_found:
-        - /etc/redis/redis.conf
-        - /etc/redis.conf
+      when: redis_conf_file.matched > 0
 
     - name: Reload systemd to recognize Redis service
       ansible.builtin.systemd:
@@ -66,3 +77,5 @@
     - name: Start and enable Redis service
       ansible.builtin.service:
         name: redis
+        state: started
+        enabled: yes
