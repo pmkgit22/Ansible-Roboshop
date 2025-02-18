@@ -2,25 +2,33 @@
   hosts: rabbitmq
   become: yes
   tasks:
-  - name: configure rabbitmq yum repos
-    ansible.builtin.shell: "{{item}}"
-    loop:
-    - "curl -s https://packagecloud.io/install/repositories/rabbitmq/erlang/script.rpm.sh | bash"
-    - "curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.rpm.sh | bash"
+  
+    - name: Configure RabbitMQ YUM repositories
+      ansible.builtin.shell: "{{ item }}"
+      loop:
+        - "curl -s https://packagecloud.io/install/repositories/rabbitmq/erlang/script.rpm.sh | bash"
+        - "curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.rpm.sh | bash"
+    
+    - name: Install RabbitMQ
+      ansible.builtin.yum:
+        name: rabbitmq-server
+        state: installed
 
-  - name: Install RabbitMQ
-    ansible.builtin.yum:
-      name: rabbitmq-server
-      state: installed
+    - name: Restart RabbitMQ service
+      ansible.builtin.service:
+        name: rabbitmq-server
+        state: restarted
+        enabled: true
 
-  - name: restart rabbitmq
-    ansible.builtin.service:
-      name: rabbitmq-server
-      state: restarted
-      enabled: true
+    - name: Check if RabbitMQ user "roboshop" exists
+      ansible.builtin.shell: rabbitmqctl list_users | grep roboshop
+      register: user_check
+      ignore_errors: yes
+      changed_when: false
 
-  - name: create rabbitmq user
-    ansible.builtin.shell: rabbitmqctl add_user roboshop roboshop123
+    - name: Create RabbitMQ user if it doesn't exist
+      ansible.builtin.shell: rabbitmqctl add_user roboshop roboshop123
+      when: user_check.rc != 0
 
-  - name: setup permissions
-    ansible.builtin.shell: rabbitmqctl set_permissions -p / roboshop ".*" ".*" ".*"
+    - name: Set permissions for "roboshop" user
+      ansible.builtin.shell: rabbitmqctl set_permissions -p / roboshop ".*" ".*" ".*"
