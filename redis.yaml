@@ -70,19 +70,16 @@
         replace: 'bind 0.0.0.0'
       when: redis_conf_file.matched > 0
 
-    - name: Find the Redis Service Name
-      ansible.builtin.shell: "systemctl list-units --type=service | grep -i redis"
-      register: redis_service_name
-      changed_when: false
-
-    - name: Debug Redis Service Name
-      ansible.builtin.debug:
-        msg: "Detected Redis service name: {{ redis_service_name.stdout }}"
-
-    - name: Start and enable Redis service
+    - name: Start and enable Redis service on Amazon Linux
+      when: os_family == "amazon"
       ansible.builtin.systemd:
-        name: "{{ redis_service_name.stdout | trim }}"
+        name: redis
         state: started
         enabled: yes
-      when: redis_service_name.stdout != ""
 
+    - name: Start and enable Redis service on RHEL/CentOS
+      when: os_family == "rhel"
+      ansible.builtin.systemd:
+        name: redis-server
+        state: started
+        enabled: yes
