@@ -2,72 +2,77 @@
   hosts: shipping
   become: yes
   tasks:
-  - name: Install Maven
-    ansible.builtin.yum:
-      name: maven
-      state: installed
+    - name: Install Maven
+      ansible.builtin.yum:
+        name: maven
+        state: installed
 
-  - name: check roboshop user exist or not
-    ansible.builtin.command: id roboshop
-    register: out #output is variable name
-    ignore_errors: true
+    - name: Check if roboshop user exists
+      ansible.builtin.command: id roboshop
+      register: out
+      ignore_errors: true
 
-  - when: out.rc != 0
-    name: create user roboshop
-    become: yes # we need sudo access for this task only
-    ansible.builtin.user:
-      name: roboshop
+    - name: Create roboshop user if not exists
+      when: out.rc != 0
+      ansible.builtin.user:
+        name: roboshop
 
-  - name: check /app directory exists or not
-    ansible.builtin.stat:
-      path: /app
-    register: directory
+    - name: Check if /app directory exists
+      ansible.builtin.stat:
+        path: /app
+      register: directory
 
-  - name: print the directory stats
-    ansible.builtin.debug:
-      msg: "output: {{directory}}"
+    - name: Print directory stats
+      ansible.builtin.debug:
+        msg: "Output: {{ directory }}"
 
-  - when: directory.stat.exists == False
-    name: create /app directory
-    ansible.builtin.file:
-      path: /app
-      state: directory
+    - name: Create /app directory if not exists
+      when: directory.stat.exists == False
+      ansible.builtin.file:
+        path: /app
+        state: directory
 
-  - name: Download shipping and extract
-    ansible.builtin.unarchive:
-      src: https://roboshop-builds.s3.amazonaws.com/shipping.zip
-      dest: /app
-      remote_src: yes
+    - name: Download shipping and extract
+      ansible.builtin.unarchive:
+        src: https://roboshop-builds.s3.amazonaws.com/shipping.zip
+        dest: /app
+        remote_src: yes
 
-  - name: maven package
-    ansible.builtin.command: mvn clean package
-    args:
-      chdir: /app
+    - name: Copy shipping.sql to /app/schema/
+      ansible.builtin.copy:
+        src: /path/to/local/shipping.sql   # Update this with the local path to your shipping.sql file
+        dest: /app/schema/shipping.sql    # Destination path on the server
+        mode: '0644'
 
-  - name: rename jar file
-    ansible.builtin.command: mv target/shipping-1.0.jar shipping.jar
-    args:
-      chdir: /app
+    - name: Maven package
+      ansible.builtin.command: mvn clean package
+      args:
+        chdir: /app
 
-  - name: copy shipping service
-    ansible.builtin.copy:
-      src: shipping.service
-      dest: /etc/systemd/system/shipping.service
+    - name: Rename jar file
+      ansible.builtin.command: mv target/shipping-1.0.jar shipping.jar
+      args:
+        chdir: /app
 
-  - name: deamon reload
-    ansible.builtin.systemd:
-      daemon_reload: true
+    - name: Copy shipping service file
+      ansible.builtin.copy:
+        src: shipping.service
+        dest: /etc/systemd/system/shipping.service
 
-  - name: Install MySQL client
-    ansible.builtin.yum:
-      name: mysql
-      state: installed
+    - name: Reload systemd daemon
+      ansible.builtin.systemd:
+        daemon_reload: true
 
-  - name: load mysql schema
-    ansible.builtin.shell: mysql -h mysql.munidevops.shop -uroot -pRoboShop@1 < /app/schema/shipping.sql 
-  
-  - name: restart shipping
-    ansible.builtin.service:
-      name: shipping
-      state: restarted
-      enabled: true
+    - name: Install MySQL client
+      ansible.builtin.yum:
+        name: mysql
+        state: installed
+
+    - name: Load MySQL schema
+      ansible.builtin.shell: mysql -h mysql.munidevops.shop -uroot -pRoboShop@1 < /app/schema/shipping.sql
+
+    - name: Restart shipping service
+      ansible.builtin.service:
+        name: shipping
+        state: restarted
+        enabled: true
