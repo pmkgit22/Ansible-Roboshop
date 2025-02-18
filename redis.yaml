@@ -1,36 +1,54 @@
-- name: Install and Configure Redis on EC2 (CentOS 8/RHEL 8)
+- name: Install and Configure Redis on EC2 (Amazon Linux / CentOS 8 / RHEL 8)
   hosts: redis
   become: yes
   tasks:
 
-    - name: Get OS Version
-      ansible.builtin.shell: "rpm -q --queryformat '%{VERSION}' redhat-release || rpm -q --queryformat '%{VERSION}' centos-release"
-      register: os_version
+    - name: Get OS Information
+      ansible.builtin.shell: "cat /etc/os-release"
+      register: os_info
       changed_when: false
 
-    - name: Install Redis repo (Compatible with RHEL 8.x)
-      ansible.builtin.shell: |
-        if [[ "{{ os_version.stdout }}" == "8.9" ]]; then
-          yum install -y https://rpms.remirepo.net/enterprise/remi-release-8.9.rpm
-        else
-          yum install -y https://rpms.remirepo.net/enterprise/remi-release-8.rpm
-        fi
-      args:
-        warn: false
+    - name: Set OS family variable
+      ansible.builtin.set_fact:
+        os_family: >-
+          {% if 'Amazon Linux' in os_info.stdout %}amazon
+          {% elif 'CentOS' in os_info.stdout or 'Red Hat' in os_info.stdout %}rhel
+          {% else %}unknown{% endif %}
 
-    - name: Clean yum metadata cache
-      ansible.builtin.command: yum clean all
-      changed_when: false
+    - name: Debug OS Family
+      ansible.builtin.debug:
+        msg: "Detected OS: {{ os_family }}"
 
-    - name: Enable Redis 6.2 module
-      ansible.builtin.shell: yum module enable redis:remi-6.2 -y
-      args:
-        warn: false  # Suppress warnings
+    - name: Install Redis on Amazon Linux
+      when: os_family == "amazon"
+      block:
+        - name: Enable Amazon Linux Extras for Redis
+          ansible.builtin.command: amazon-linux-extras enable redis6
+          changed_when: false
 
-    - name: Install Redis
-      ansible.builtin.yum:
-        name: redis
-        state: present
+        - name: Install Redis on Amazon Linux
+          ansible.builtin.yum:
+            name: redis
+            state: present
+
+    - name: Install Redis on RHEL/CentOS 8
+      when: os_family == "rhel"
+      block:
+        - name: Install Redis repo
+          ansible.builtin.yum:
+            name: https://rpms.remirepo.net/enterprise/remi-release-8.rpm
+            state: present
+            disable_gpg_check: true
+
+        - name: Enable Redis 6.2 module
+          ansible.builtin.shell: yum module enable redis:remi-6.2 -y
+          args:
+            warn: false
+
+        - name: Install Redis on RHEL/CentOS
+          ansible.builtin.yum:
+            name: redis
+            state: present
 
     - name: Allow remote connections to Redis
       ansible.builtin.replace:
@@ -48,5 +66,3 @@
     - name: Start and enable Redis service
       ansible.builtin.service:
         name: redis
-        state: started
-        enabled: yes
