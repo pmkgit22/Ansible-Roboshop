@@ -42,6 +42,7 @@
       ansible.builtin.copy:
         src: /path/to/local/shipping.sql   # Update this with the local path to your shipping.sql file
         dest: /app/schema/shipping.sql    # Destination path on the server
+        remote_src: yes
         mode: '0644'
 
     - name: Maven package
