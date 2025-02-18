@@ -1,21 +1,31 @@
-- name: Install Redis component
+- name: Install and Configure Redis on EC2 (CentOS 8/RHEL 8)
   hosts: redis
   become: yes
   tasks:
-    - name: Install Redis repo
-      ansible.builtin.yum:
-        name: https://rpms.remirepo.net/enterprise/remi-release-8.rpm
-        state: present
-        disable_gpg_check: true
+
+    - name: Get OS Version
+      ansible.builtin.shell: "rpm -q --queryformat '%{VERSION}' redhat-release || rpm -q --queryformat '%{VERSION}' centos-release"
+      register: os_version
+      changed_when: false
+
+    - name: Install Redis repo (Compatible with RHEL 8.x)
+      ansible.builtin.shell: |
+        if [[ "{{ os_version.stdout }}" == "8.9" ]]; then
+          yum install -y https://rpms.remirepo.net/enterprise/remi-release-8.9.rpm
+        else
+          yum install -y https://rpms.remirepo.net/enterprise/remi-release-8.rpm
+        fi
+      args:
+        warn: false
+
+    - name: Clean yum metadata cache
+      ansible.builtin.command: yum clean all
+      changed_when: false
 
     - name: Enable Redis 6.2 module
       ansible.builtin.shell: yum module enable redis:remi-6.2 -y
       args:
         warn: false  # Suppress warnings
-
-    - name: Clean yum metadata cache
-      ansible.builtin.command: yum clean all
-      changed_when: false
 
     - name: Install Redis
       ansible.builtin.yum:
