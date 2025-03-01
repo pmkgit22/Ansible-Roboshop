@@ -38,12 +38,12 @@
         dest: /app
         remote_src: yes
 
-    - name: Copy shipping.sql to /app/schema/
-      ansible.builtin.copy:
-        src: /path/to/local/shipping.sql   # Update this with the local path to your shipping.sql file
-        dest: /app/schema/shipping.sql    # Destination path on the server
-        remote_src: yes
-        mode: '0644'
+    # - name: Copy shipping.sql to /app/schema/
+    #   ansible.builtin.copy:
+    #     src: shipping.service   # Update this with the local path to your shipping.sql file
+    #     dest: /app/schema/shipping.sql    # Destination path on the server
+    #     remote_src: yes
+    #     mode: '0644'
 
     - name: Maven package
       ansible.builtin.command: mvn clean package
@@ -63,6 +63,12 @@
     - name: Reload systemd daemon
       ansible.builtin.systemd:
         daemon_reload: true
+    
+    - name: Restart shipping service
+      ansible.builtin.service:
+        name: shipping
+        state: restarted
+        enabled: true
 
     - name: Install MySQL client
       ansible.builtin.yum:
