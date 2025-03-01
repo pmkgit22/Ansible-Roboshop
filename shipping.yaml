@@ -17,37 +17,26 @@
       ansible.builtin.user:
         name: roboshop
 
-    - name: Check if /app directory exists
-      ansible.builtin.stat:
-        path: /app
-      register: directory
-
-    - name: Print directory stats
-      ansible.builtin.debug:
-        msg: "Output: {{ directory }}"
-
-    - name: Create /app directory if not exists
-      when: directory.stat.exists == False
+    - name: Ensure /app and /app/schema directories exist
       ansible.builtin.file:
-        path: /app
+        path: "{{ item }}"
         state: directory
+        mode: '0755'
+      loop:
+        - /app
+        - /app/schema
 
-    - name: Download shipping and extract
+    - name: Download and extract shipping service
       ansible.builtin.unarchive:
         src: https://roboshop-builds.s3.amazonaws.com/shipping.zip
         dest: /app
         remote_src: yes
 
-    # - name: Copy shipping.sql to /app/schema/
-    #   ansible.builtin.copy:
-    #     src: shipping.service   # Update this with the local path to your shipping.sql file
-    #     dest: /app/schema/shipping.sql    # Destination path on the server
-    #     remote_src: yes
-    #     mode: '0644'
-    - name: Copy shipping schema
-      copy:
-        src: shipping.sql
+    - name: Copy shipping.sql to /app/schema/
+      ansible.builtin.copy:
+        src: shipping.sql  # This file MUST be present in the Ansible Controller
         dest: /app/schema/shipping.sql
+        mode: '0644'
 
     - name: Maven package
       ansible.builtin.command: mvn clean package
@@ -63,6 +52,7 @@
       ansible.builtin.copy:
         src: shipping.service
         dest: /etc/systemd/system/shipping.service
+        mode: '0644'
 
     - name: Reload systemd daemon
       ansible.builtin.systemd:
@@ -80,7 +70,10 @@
         state: installed
 
     - name: Load MySQL schema
-      ansible.builtin.shell: mysql -h mysql.munidevops.shop -uroot -pRoboShop@1 < /app/schema/shipping.sql
+      ansible.builtin.shell: |
+        mysql -h mysql.munidevops.shop -uroot -pRoboShop@1 < /app/schema/shipping.sql
+      args:
+        executable: /bin/bash
 
     - name: Restart shipping service
       ansible.builtin.service:
