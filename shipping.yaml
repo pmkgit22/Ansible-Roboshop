@@ -44,6 +44,10 @@
     #     dest: /app/schema/shipping.sql    # Destination path on the server
     #     remote_src: yes
     #     mode: '0644'
+    - name: Copy shipping schema
+      copy:
+        src: shipping.sql
+        dest: /app/schema/shipping.sql
 
     - name: Maven package
       ansible.builtin.command: mvn clean package
